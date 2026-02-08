@@ -55,6 +55,19 @@ async def get_mouse_pointer(data: List[MousePoint]):
     
     return {"status": "collecting", "buffer_count": "데이터 축적 중..."}
 ```
+```
+100
+{
+    'status': '0', 
+    'data': [
+        {'raw_error': 0.01729, 'threshold': 0.054254673421382904, 'is_macro': np.False_}, 
+        {'raw_error': 0.01732, 'threshold': 0.054254673421382904, 'is_macro': np.False_}, 
+        {'raw_error': 0.01729, 'threshold': 0.054254673421382904, 'is_macro': np.False_},
+        ...
+        ]
+}
+
+```
 
 # Return Code
 ```

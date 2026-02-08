@@ -3,7 +3,7 @@
     "STRIDE": 30,
     "JsonPath": "./",
     "Recorder": "json",
-    "threshold": 0.054254673421382904,
+    "threshold": 0.07965382933616638,
     "d_model": 256,
     "num_layers": 4,
     "dropout": 0.3,
