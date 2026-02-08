@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mytorchlib"
+version = "0.0.5"
+description = "Transformer based mouse macro detector"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=2.0.0",
+    "joblib",
+    "numpy",
+    "pandas",
+    "scikit-learn"  # scaler.pkl을 사용하므로 필수입니다.
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true  # MANIFEST.in 없이도 package-data를 포함하게 함
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# 라이브러리 폴더 이름(mytorchlib) 내의 assets 폴더 아래 모든 파일을 포함
+"macro_detector" = ["assets/*.pt", "assets/*.pkl", "assets/*.json"]

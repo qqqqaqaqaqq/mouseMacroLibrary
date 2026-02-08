@@ -1,0 +1,54 @@
+{
+    "SEQ_LEN": 50,
+    "STRIDE": 30,
+    "JsonPath": "./",
+    "Recorder": "json",
+    "threshold": 0.054254673421382904,
+    "d_model": 256,
+    "num_layers": 4,
+    "dropout": 0.3,
+    "batch_size": 128,
+    "lr": 0.0001,
+    "tolerance": 0.02,
+    "n_head": 4,
+    "epoch": 100,
+    "patience": 10,
+    "weight_decay": 0.0001,
+    "dim_feedforward": 256,
+    "weight_threshold": 1.0,
+    "CLIP_BOUNDS": {
+        "deltatime": {
+            "min": 0.02190550000159419,
+            "max": 0.09007431999489199
+        },
+        "speed": {
+            "min": 0.0,
+            "max": 10624.522768293575
+        },
+        "micro_shaking": {
+            "min": 2.8,
+            "max": 170.8
+        },
+        "jerk_flip_rate": {
+            "min": 0.3,
+            "max": 1.0
+        },
+        "ang_vel": {
+            "min": -68.01067558174451,
+            "max": 59.78284079888252
+        },
+        "ang_acc": {
+            "min": -92.9521460238329,
+            "max": 94.46496566983018
+        },
+        "speed_var": {
+            "min": 0.0,
+            "max": 7961.811871674364
+        },
+        "radius_roc_rel": {
+            "min": -3167.1589888450007,
+            "max": 43.467591314150205
+        }
+    },
+    "loss_floor": 0.03
+}
