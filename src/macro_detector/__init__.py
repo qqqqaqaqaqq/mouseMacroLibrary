@@ -1,13 +1,14 @@
 import os
 from macro_detector.macro_dectector import MacroDetector
 from macro_detector.MousePoint import MousePoint
+from typing import List
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(BASE_DIR, "assets", "config.json")
 
 _detector = MacroDetector(config_path=CONFIG_PATH)
 
-def get_macro_result(receive_data_list: list[dict]):
+def get_macro_result(receive_data_list: List[MousePoint]):
     try:
         all_data = []
         result = {}        
@@ -21,12 +22,12 @@ def get_macro_result(receive_data_list: list[dict]):
         inferenc_result = None
 
         for data in receive_data_list:
-            step = MousePoint(**data)
+
             p_data = {
-                'timestamp': step.timestamp,
-                'x': step.x,
-                'y': step.y,
-                'deltatime': step.deltatime
+                'timestamp': data.timestamp,
+                'x': data.x,
+                'y': data.y,
+                'deltatime': data.deltatime
             }
             
             inferenc_result = _detector.push(p_data)
