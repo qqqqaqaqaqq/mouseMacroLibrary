@@ -7,7 +7,7 @@ pip install git+https://github.com/qqqqaqaqaqq/mouseMacroLibrary.git
 
 ---
 
-# 테스트
+# python
 ```
 import macro_detector
 
@@ -33,12 +33,21 @@ print(f"결과: {result}")
 # fastapi
 ```
 from fastapi import APIRouter
-from macro_detector import get_macro_result
+from typing import List
+from macro_detector import get_macro_result, MousePoint
 
 router = APIRouter()
 
+# class MousePoint(BaseModel):
+#     timestamp: datetime
+#     x: int
+#     y: int
+#     deltatime: float
+
 @router.post("/get_points")
-async def get_mouse_pointer(data: list):
+async def get_mouse_pointer(data: List[MousePoint]):
+
+    print(len(data))
     result = get_macro_result(data)
 
     if result:
@@ -47,7 +56,7 @@ async def get_mouse_pointer(data: list):
     return {"status": "collecting", "buffer_count": "데이터 축적 중..."}
 ```
 
----
+# Return Code
 ```
 # error
 return {
