@@ -24,7 +24,7 @@ class MacroDetector:
         self.seq_len = self.cfg.get("seq_len", 50)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        self.allowable_add_data = self.seq_len + 25
+        self.allowable_add_data = self.seq_len + 1 # 여유값 + 1
         self.CLIP_BOUNDS:dict = self.cfg["CLIP_BOUNDS"]
         self.features = list(self.CLIP_BOUNDS.keys())
         self.input_size = len(self.features)
@@ -90,8 +90,10 @@ class MacroDetector:
 
         self.smooth_error_buf.append(recon_error)
         avg_error = np.mean(self.smooth_error_buf)
-        
+        final_threshold = float(self.base_threshold * self.weight_threshold)
+
         return {
-            "raw_error": round(avg_error, 5),
-            "avg_error": self.base_threshold * self.weight_threshold
+            "raw_error": float(round(avg_error, 5)),
+            "threshold": final_threshold,
+            "is_macro": avg_error > final_threshold
         }
