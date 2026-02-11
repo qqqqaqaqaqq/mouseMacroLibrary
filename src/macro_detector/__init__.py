@@ -8,8 +8,8 @@ CONFIG_PATH = os.path.join(BASE_DIR, "assets", "config.json")
 
 _detector = MacroDetector(config_path=CONFIG_PATH)
 
-def get_macro_result(receive_data_list: List[MousePoint]):
-    print(f"version 0.0.2")
+async def get_macro_result(receive_data_list: List[MousePoint]):
+    print(f"version 0.0.3")
     print(f"송신받은 데이터 개수 {len(receive_data_list)}")
     try:
         all_data = []

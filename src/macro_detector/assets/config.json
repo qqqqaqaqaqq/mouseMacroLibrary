@@ -1,13 +1,12 @@
 {
-    "SEQ_LEN": 70,
-    "STRIDE": 30,
+    "SEQ_LEN": 30,
+    "STRIDE": 15,
     "JsonPath": "./",
-    "Recorder": "json",
-    "threshold": 0.2121269702911377,
-    "d_model": 128,
+    "threshold": 0.09460396319627762,
+    "d_model": 256,
     "num_layers": 4,
     "dropout": 0.3,
-    "batch_size": 256,
+    "batch_size": 2562,
     "lr": 0.0005,
     "tolerance": 0.02,
     "n_head": 8,
@@ -17,5 +16,5 @@
     "dim_feedforward": 512,
     "weight_threshold": 1.0,
     "improvement_val_loss_cut": 0.95,
-    "chunk_size": 30
+    "chunk_size": 100
 }
