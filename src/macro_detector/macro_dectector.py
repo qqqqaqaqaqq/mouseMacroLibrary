@@ -3,20 +3,33 @@ import joblib
 import numpy as np
 import pandas as pd
 from collections import deque
-import json
 import os
+import json
+
+from sklearn.preprocessing import RobustScaler
 
 from macro_detector.TransformerMacroDetector import TransformerMacroAutoencoder
 from macro_detector.indicators import indicators_generation
+
+from macro_detector.make_sequence import make_seq
+from macro_detector.make_gauss import make_gauss
 from macro_detector.loss_caculation import Loss_Calculation
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "assets", "mouse_macro_lstm_best.pt")
 DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "assets", "scaler.pkl")
 
+
+FEATURES = [
+    "micro_shake",
+    "speed",
+    "acc",
+    "jerk"
+]
+
 class MacroDetector:
     def __init__(self, config_path):
-        
+
         self.cfg:dict = {}
         with open(config_path, 'r') as f:
             self.cfg:dict = json.load(f)
@@ -24,17 +37,18 @@ class MacroDetector:
         self.seq_len = self.cfg.get("seq_len", 50)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        self.allowable_add_data = self.seq_len + 1 # 여유값 + 1
-        self.CLIP_BOUNDS:dict = self.cfg["CLIP_BOUNDS"]
-        self.features = list(self.CLIP_BOUNDS.keys())
-        self.input_size = len(self.features)
+        self.tolerance = self.cfg.get("tolerance", 0.02)
+        self.chunk_size = self.cfg.get("chunk_size", 50)
+
+        self.allowable_add_data = self.seq_len + self.chunk_size + 5
+
+        self.input_size = len(FEATURES) * 6
         self.weight_threshold = self.cfg["weight_threshold"]
 
         self.base_threshold = self.cfg['threshold']
         self.buffer = deque(maxlen=self.allowable_add_data)
-        
-        # 노이즈 방지를 위해 최근 3~5개 에러의 평균만 사용 (순간적인 튐 방지)
-        self.smooth_error_buf = deque(maxlen=5)
+
+        self.buffer = deque(maxlen=self.allowable_add_data * 2)
 
         # ===== 모델 초기화 =====
         self.model = TransformerMacroAutoencoder(
@@ -48,52 +62,57 @@ class MacroDetector:
 
         self.model.load_state_dict(torch.load(DEFAULT_MODEL_PATH, map_location=self.device, weights_only=True))
         self.model.eval()
-        self.scaler = joblib.load(DEFAULT_SCALER_PATH)
+        self.scaler:RobustScaler = joblib.load(DEFAULT_SCALER_PATH)
 
     def push(self, data: dict):
-        self.buffer.append(
-            (
-                data.get('x'), 
-                data.get('y'), 
-                data.get('timestamp'), 
-                data.get('deltatime')
-            )
-        )
-        
+        self.buffer.append((data.get('x'), data.get('y'), data.get('timestamp'), data.get('deltatime')))
+    
         if len(self.buffer) < self.allowable_add_data:
             return None
         
         return self._infer()
 
     def _infer(self):
-
         df = pd.DataFrame(list(self.buffer), columns=["x", "y", "timestamp", "deltatime"])
+        
+        df = df[df["deltatime"] <= self.tolerance * 10].reset_index(drop=True)
+        
         df = indicators_generation(df)
 
-        df_features = df[self.features ].tail(self.seq_len).copy()
+        df_filter_chunk = df[FEATURES].copy()
         
-        if self.CLIP_BOUNDS:
-            for col, b in self.CLIP_BOUNDS.items():
-                if col in df_features.columns:
-                    df_features[col] = df_features[col].clip(lower=b['min'], upper=b['max'])
+        chunks_scaled_array = self.scaler.transform(df_filter_chunk)
+        
+        chunks_scaled_df = pd.DataFrame(chunks_scaled_array, columns=FEATURES)
+        chunks_scaled = make_gauss(data=chunks_scaled_df, chunk_size=self.chunk_size, chunk_stride=1, offset=10, train_mode=False)
+        
+        if len(chunks_scaled) < self.seq_len:
+            return None
+        
+        final_input:np.array = make_seq(data=chunks_scaled, seq_len=self.seq_len, stride=1)
 
-        try:
-            X_scaled = self.scaler.transform(df_features.values)
-            X_tensor = torch.tensor(X_scaled, dtype=torch.float32).unsqueeze(0).to(self.device)
-            
-            with torch.no_grad():
-                output = self.model(X_tensor)
-                recon_error = Loss_Calculation(outputs=output, batch=X_tensor).item()
-        except Exception as e:
-            print(f"❌ Inference Error: {e}")
+        
+        last_seq = torch.tensor(final_input[-1], dtype=torch.float32).unsqueeze(0).to(self.device)
+        
+        if last_seq.shape[1] < self.seq_len:
             return None
 
-        self.smooth_error_buf.append(recon_error)
-        avg_error = np.mean(self.smooth_error_buf)
-        final_threshold = float(self.base_threshold * self.weight_threshold)
+        with torch.no_grad():
+            output = self.model(last_seq)
+
+            sample_errors = Loss_Calculation(outputs=output, batch=last_seq).item()
+
+            # 임계치 판정 logic
+            is_human = sample_errors <= self.base_threshold
+            
+            if not is_human:
+                if hasattr(self, 'log_queue'):
+                    print(f"🚨 [DETECTION] Error: {sample_errors:.4f}")
 
         return {
-            "raw_error": float(round(avg_error, 5)),
-            "threshold": final_threshold,
-            "is_macro": avg_error > final_threshold
+            "is_human": is_human,
+            "macro_probability": "🚨 MACRO" if not is_human else "🙂 HUMAN",
+            "prob_value": sample_errors, # score 대신 error 값 전달
+            "raw_error": round(sample_errors, 5),
+            "threshold": self.base_threshold
         }

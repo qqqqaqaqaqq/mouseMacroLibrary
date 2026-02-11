@@ -12,9 +12,11 @@ class TransformerMacroAutoencoder(nn.Module):
         self.pos_encoder = nn.Parameter(torch.zeros(1, 500, d_model))  # 최대 seq_len
         
         encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead,
+            d_model=d_model, 
+            nhead=nhead,
             dim_feedforward=dim_feedforward,
-            dropout=dropout, batch_first=True
+            dropout=dropout, 
+            batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
