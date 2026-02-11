@@ -9,6 +9,7 @@ CONFIG_PATH = os.path.join(BASE_DIR, "assets", "config.json")
 _detector = MacroDetector(config_path=CONFIG_PATH)
 
 def get_macro_result(receive_data_list: List[MousePoint]):
+    print(f"version 0.1.2")
     try:
         all_data = []
         result = {}        
