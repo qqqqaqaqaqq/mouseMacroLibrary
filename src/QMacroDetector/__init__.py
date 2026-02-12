@@ -14,9 +14,9 @@ class Pattern_Game:
     def __init__(self):
         print(f"version 0.0.3")        
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        CONFIG_PATH = os.path.join(BASE_DIR, "assets", "pattern_game_model", "config.json")
-        DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "assets", "pattern_game_model", "model.pt")
-        DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "assets", "pattern_game_model", "scaler.pkl")
+        CONFIG_PATH = os.path.join(BASE_DIR, "assets", "pattern_game", "config.json")
+        DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "assets", "pattern_game", "model.pt")
+        DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "assets", "pattern_game", "scaler.pkl")
 
         self.cfg:dict = {}
         with open(CONFIG_PATH, 'r') as f:
