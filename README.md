@@ -26,7 +26,7 @@ sample_data = {
 }
 
 # 실행 테스트
-result = macro_detector.get_macro_result(sample_data)
+result = macro_detector().get_macro_result(sample_data)
 
 # 결과 출력 (초반 SEQ_LEN개까지는 데이터 쌓는 중이라 None이 나옵니다)
 print(f"결과: {result}")

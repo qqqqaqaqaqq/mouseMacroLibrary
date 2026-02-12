@@ -12,10 +12,10 @@ from macro_detector.TransformerMacroDetector import TransformerMacroAutoencoder
 
 class Circle_Trajectory:
     def __init__(self):
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        CONFIG_PATH = os.path.join(BASE_DIR, "assets", "security_circle_trajectory_model", "config.json")
-        DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "assets", "security_circle_trajectory_model", "model.pt")
-        DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "assets", "security_circle_trajectory_model", "scaler.pkl")
+        BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        CONFIG_PATH = os.path.join(BASE_DIR, "src", "macro_detector", "assets", "security_circle_trajectory_model", "config.json")
+        DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "src", "macro_detector", "assets", "security_circle_trajectory_model", "model.pt")
+        DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "src", "macro_detector", "assets", "security_circle_trajectory_model", "scaler.pkl")
 
         self.cfg:dict = {}
         with open(CONFIG_PATH, 'r') as f:
@@ -51,7 +51,7 @@ class Circle_Trajectory:
         self.detector = MacroDetector(cfg=CONFIG_PATH, model=self.model, scaler=self.scaler, FEATURES=FEATURES, device=self.device)        
 
     def get_macro_result(self, receive_data_list: List[MousePoint]):
-        print(f"version 0.0.4")
+        print(f"version 0.0.5")
         print(f"송신받은 데이터 개수 {len(receive_data_list)}")
         try:
             all_data = []

@@ -53,8 +53,6 @@ class MacroDetector:
         self.base_threshold = self.cfg['threshold']
         self.buffer = deque(maxlen=self.allowable_add_data)
 
-        self.buffer = deque(maxlen=self.allowable_add_data * 2)
-
         # ===== 모델 초기화 =====
         self.model = TransformerMacroAutoencoder(
             input_size=self.input_size,
