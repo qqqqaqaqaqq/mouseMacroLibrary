@@ -14,7 +14,6 @@ class Circle_Trajectory:
     def __init__(self):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         CONFIG_PATH = os.path.join(BASE_DIR, "assets", "security_circle_trajectory_model", "config.json")
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "assets", "security_circle_trajectory_model", "model.pt")
         DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "assets", "security_circle_trajectory_model", "scaler.pkl")
 
@@ -28,10 +27,9 @@ class Circle_Trajectory:
             "jerk",
             "micro_shake",
             "curvature",
-            # --- 추가 추천 피처 ---
-            "angle_vel",     # 방향 전환의 부드러움 측정 (각속도)
-            "energy_impact", # acc * jerk (물리적 일관성 파괴용)
-            "jerk_diff"      # 저크의 변화량 (가속도의 가속도의 가속도)
+            "angle_vel",
+            "energy_impact", 
+            "jerk_diff"
         ]
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -53,7 +51,7 @@ class Circle_Trajectory:
         self.detector = MacroDetector(cfg=CONFIG_PATH, model=self.model, scaler=self.scaler, FEATURES=FEATURES, device=self.device)        
 
     def get_macro_result(self, receive_data_list: List[MousePoint]):
-        print(f"version 0.0.3")
+        print(f"version 0.0.4")
         print(f"송신받은 데이터 개수 {len(receive_data_list)}")
         try:
             all_data = []
