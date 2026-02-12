@@ -11,12 +11,16 @@ pip uninstall mytorchlib
 
 ---
 
-## python
-```
-import macro_detector
+---
 
-# 임포트 경로가 잘 잡혔는지 확인
-print(macro_detector.__file__) 
+## Class
+Circle_Trajectory : 보안용 원형 궤적 마우스 움직임
+
+--- 
+
+# python
+```
+from macro_detector import Circle_Trajectory, MousePoint
 
 sample_data = {
     'x': 100, # int
@@ -26,13 +30,11 @@ sample_data = {
 }
 
 # 실행 테스트
-result = macro_detector().get_macro_result(sample_data)
+result = Circle_Trajectory().get_macro_result(sample_data)
 
 # 결과 출력 (초반 SEQ_LEN개까지는 데이터 쌓는 중이라 None이 나옵니다)
 print(f"결과: {result}")
 ```
-
---- 
 
 ## fastapi
 ```
@@ -73,7 +75,7 @@ async def get_mouse_pointer(data: List[MousePoint]):
 
 ```
 
-# Return Code
+## Return Code
 ```
 # error
 return {
@@ -104,3 +106,4 @@ result = {
     "data" : all_data
 }
 ```
+
