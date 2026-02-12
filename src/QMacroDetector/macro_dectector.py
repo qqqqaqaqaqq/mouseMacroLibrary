@@ -1,51 +1,36 @@
 import torch
-import joblib
 import numpy as np
 import pandas as pd
 from collections import deque
-import os
-import json
 
 from sklearn.preprocessing import RobustScaler
-
-from QMacroDetector.TransformerMacroDetector import TransformerMacroAutoencoder
 from QMacroDetector.indicators import indicators_generation
 
 from QMacroDetector.make_sequence import make_seq
 from QMacroDetector.make_gauss import make_gauss
 from QMacroDetector.loss_caculation import Loss_Calculation
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "assets", "model.pt")
-DEFAULT_SCALER_PATH = os.path.join(BASE_DIR, "assets", "scaler.pkl")
-
-
-FEATURES = [
-    "speed",
-    "acc",
-    "jerk",
-    "micro_shake",
-    "curvature",
-    # --- 추가 추천 피처 ---
-    "angle_vel",     # 방향 전환의 부드러움 측정 (각속도)
-    "energy_impact", # acc * jerk (물리적 일관성 파괴용)
-    "jerk_diff"      # 저크의 변화량 (가속도의 가속도의 가속도)
-]
-
 class MacroDetector:
-    def __init__(self, config_path):
+    def __init__(self, cfg, model, scaler, FEATURES, device):
 
-        self.cfg:dict = {}
-        with open(config_path, 'r') as f:
-            self.cfg:dict = json.load(f)
+        self.cfg:dict = cfg
 
         self.seq_len = self.cfg.get("seq_len", 50)
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
         self.tolerance = self.cfg.get("tolerance", 0.02)
         self.chunk_size = self.cfg.get("chunk_size", 50)
 
         self.allowable_add_data = self.seq_len + self.chunk_size + 30
+
+        self.FEATURES = [
+            "speed",
+            "acc",
+            "jerk",
+            "micro_shake",
+            "curvature",
+            "angle_vel",
+            "energy_impact", 
+            "jerk_diff"
+        ]
 
         self.input_size = len(FEATURES) * 4
         self.weight_threshold = self.cfg["weight_threshold"]
@@ -53,19 +38,9 @@ class MacroDetector:
         self.base_threshold = self.cfg['threshold']
         self.buffer = deque(maxlen=self.allowable_add_data)
 
-        # ===== 모델 초기화 =====
-        self.model = TransformerMacroAutoencoder(
-            input_size=self.input_size,
-            d_model=self.cfg["d_model"],
-            nhead=self.cfg["n_head"],
-            num_layers=self.cfg["num_layers"],
-            dim_feedforward=self.cfg["dim_feedforward"],
-            dropout=self.cfg["dropout"]
-        ).to(self.device)
-
-        self.model.load_state_dict(torch.load(DEFAULT_MODEL_PATH, map_location=self.device, weights_only=True))
-        self.model.eval()
-        self.scaler:RobustScaler = joblib.load(DEFAULT_SCALER_PATH)
+        self.device = device
+        self.model = model
+        self.scaler:RobustScaler = scaler
 
     def push(self, data: dict):
         self.buffer.append((data.get('x'), data.get('y'), data.get('timestamp'), data.get('deltatime')))
@@ -82,11 +57,11 @@ class MacroDetector:
         
         df = indicators_generation(df)
 
-        df_filter_chunk = df[FEATURES].copy()
+        df_filter_chunk = df[self.FEATURES].copy()
         
         chunks_scaled_array = self.scaler.transform(df_filter_chunk)
         
-        chunks_scaled_df = pd.DataFrame(chunks_scaled_array, columns=FEATURES)
+        chunks_scaled_df = pd.DataFrame(chunks_scaled_array, columns=self.FEATURES)
         chunks_scaled = make_gauss(data=chunks_scaled_df, chunk_size=self.chunk_size, chunk_stride=1, offset=10, train_mode=False)
         
         if len(chunks_scaled) < self.seq_len:
